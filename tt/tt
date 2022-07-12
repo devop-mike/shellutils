@@ -1,0 +1,14 @@
+#!/bin/sh
+
+data=$(stty size)
+columns=$(echo ${data} | cut -d' ' -f2)
+lines=$(echo ${data} | cut -d' ' -f1)
+unset data
+
+echo "Layout:         ${columns}x${lines}"
+echo "Term:           ${TERM}"
+echo "Display:        ${DISPLAY}"
+echo "SSH TTY:        ${SSH_TTY}"
+echo "SSH Client:     ${SSH_CLIENT}"
+echo "SSH Connection: ${SSH_CONNECTION}"
+echo "Host            $(uname -nr)"

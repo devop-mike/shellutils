@@ -1,0 +1,6 @@
+#!/bin/sh
+
+rootdevice=$(mount | grep "on / " | cut -d" " -f1)
+created=$(sudo tune2fs -l ${rootdevice} | grep -i created | cut -d: -f2-)
+formated=$(date -d "${created}" --rfc-3339=seconds)
+echo ${formated}

@@ -1,0 +1,27 @@
+#!/bin/bash
+
+getmacvendor() {
+  vendor=$(grep ${1} /tmp/macvendorlist)
+  if [ -n "${vendor}" ]; then
+    echo ${vendor:9}
+  else
+    vendor=$(wget "https://api.macvendors.com/${1}" -q -O -)
+    if [ $? -eq 0 -a -n "${vendor}" ]; then
+      echo "${1} ${vendor}" >>/tmp/macvendorlist
+      echo ${vendor}
+    fi
+  fi
+}
+
+if [ ! -f /tmp/macvendorlist ]; then
+  touch /tmp/macvendorlist
+fi
+
+/usr/sbin/arp -an | sort -t. -k 3,3n -k 4,4n | while read -r unknown ipaddress discardat macaddress discardrest; do
+  ip=${ipaddress//[()]/}
+  if [ "${macaddress}" != "<incomplete>" ]; then
+    macpre=${macaddress:0:8}
+    macvendor=$(getmacvendor ${macpre})
+    echo ${ip} ${macaddress} ${macvendor}
+  fi
+done

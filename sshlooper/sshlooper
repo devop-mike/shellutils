@@ -1,0 +1,51 @@
+#!/bin/sh
+
+export include="$(realpath $0).d"
+
+matchedconf="${include}/default.conf"
+. ${matchedconf}
+
+invocation="$(basename ${0})"
+for conf in ${include}/*.conf; do
+  case "${invocation}.conf" in
+  *${conf##*/})
+    matchedconf=${conf}
+    . ${matchedconf}
+    break
+    ;;
+  esac
+done
+
+if [ "-d" = "${1}" ]; then
+  echo "invocation : ${invocation}"
+  echo "include    : ${include}"
+  echo "matchedconf: ${matchedconf}"
+  echo "hosts      : ${hosts}"
+  echo "commands   : ${commands}"
+  exit
+fi
+
+if [ "-l" = "${1}" ]; then
+  echo ${hosts}
+  exit
+fi
+
+skipecho=0
+if [ "-e" = "${1}" ]; then
+  skipecho=1
+  shift
+fi
+
+if [ -n "$*" ]; then
+  commands="$*"
+fi
+
+for host in ${hosts}; do
+  if [ ${skipecho} -lt 1 ]; then
+    echo "-- ${host} --"
+  fi
+  ssh ${host} "${commands}"
+  if [ ${skipecho} -lt 1 ]; then
+    echo
+  fi
+done

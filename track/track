@@ -1,0 +1,26 @@
+#!/bin/sh
+
+decode() {
+  echo -n $1
+  targetx=$(readlink $1)
+  if [ -n "$targetx" ]; then
+    echo -n " -> "
+    decode $targetx
+  fi
+}
+
+for arg in $*; do
+  target=$(which $arg)
+  if [ -n "$target" ]; then
+    decode $target
+
+    package=$(dpkg -S ${target} 2>/dev/null)
+    if [ $? -ne 0 ]; then
+      package=$(dpkg -S ${target#/usr} 2>/dev/null)
+    fi
+    if [ $? -eq 0 ]; then
+      echo -n "      [$(echo $package | cut -d: -f1)]"
+    fi
+    echo
+  fi
+done
