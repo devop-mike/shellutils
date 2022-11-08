@@ -1,22 +1,35 @@
 #!/bin/sh
 
-export include="$(realpath $0).d"
+realfilepath="$(realpath $0)"
+export include="${realfilepath}.d"
 
 matchedconf="${include}/default.conf"
 . ${matchedconf}
 
+realfile="$(basename ${realfilepath})"
 invocation="$(basename ${0})"
-for conf in ${include}/*.conf; do
-  case "${invocation}.conf" in
-  *${conf##*/})
+
+if [ ${realfile} = ${invocation} ]; then
+  conf="${include}/${1}.conf"
+  if [ -f ${conf} ]; then
+    shift
     matchedconf=${conf}
     . ${matchedconf}
-    break
-    ;;
-  esac
-done
+  fi
+else
+  for conf in ${include}/*.conf; do
+    case "${invocation}.conf" in
+    *${conf##*/})
+      matchedconf=${conf}
+      . ${matchedconf}
+      break
+      ;;
+    esac
+  done
+fi
 
 if [ "-d" = "${1}" ]; then
+  echo "realfile   : ${realfile}"
   echo "invocation : ${invocation}"
   echo "include    : ${include}"
   echo "matchedconf: ${matchedconf}"
