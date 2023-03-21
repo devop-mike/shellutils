@@ -1,15 +1,22 @@
 #!/bin/bash
 
 getmacvendor() {
+  vendor=$(grep ${1} ${0}.list)
+  if [ -n "${vendor}" ]; then
+    echo ${vendor:9}
+    return 0
+  fi
+
   vendor=$(grep ${1} /tmp/macvendorlist)
   if [ -n "${vendor}" ]; then
     echo ${vendor:9}
-  else
-    vendor=$(wget "https://api.macvendors.com/${1}" -q -O -)
-    if [ $? -eq 0 -a -n "${vendor}" ]; then
-      echo "${1} ${vendor}" >>/tmp/macvendorlist
-      echo ${vendor}
-    fi
+    return 0
+  fi
+
+  vendor=$(wget "https://api.macvendors.com/${1}" -q -O -)
+  if [ $? -eq 0 -a -n "${vendor}" ]; then
+    echo "${1} ${vendor}" >>/tmp/macvendorlist
+    echo ${vendor}
   fi
 }
 
