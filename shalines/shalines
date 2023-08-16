@@ -1,0 +1,30 @@
+#!/bin/bash
+
+shacmd=(sha1sum)
+
+shaline() {
+  while read; do
+    echo $(echo "${REPLY}" | ${shacmd[@]}) "${REPLY}"
+  done
+}
+shalinenoecho() {
+  while read; do
+    echo $(echo "${REPLY}" | ${shacmd[@]} | sed -e 's_ -__')
+  done
+}
+
+if [ "${1}" == "-n" ]; then
+  cmd=(shalinenoecho)
+  shift
+else
+  cmd=(shaline)
+fi
+
+if [ -n "${1}" ]; then
+  while [ -n "${1}" ]; do
+    ${cmd[@]} < ${1}
+    shift
+  done
+else
+  ${cmd[@]}
+fi
