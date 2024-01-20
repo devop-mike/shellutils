@@ -2,12 +2,15 @@
 00:11:62 STAR MICRONICS CO.,LTD.
 00:19:17 Posiflex Inc.
 00:1d:aa DrayTek Corp.
+00:22:15 ASUSTek COMPUTER INC.
+00:27:00 Shenzhen Siglent Technology Co., Ltd.
 00:60:ef FLYTECH TECHNOLOGY CO., LTD.
 08:ff:44 Apple, Inc.
 18:7e:b9 Apple, Inc.
 18:e8:29 Ubiquiti Inc
 24:5a:4c Ubiquiti Inc
 2c:56:dc ASUSTek COMPUTER INC.
+34:85:18 Espressif Inc.
 38:78:62 Sony Corporation
 60:22:32 Ubiquiti Inc
 68:ed:a4 Shenzhen Seavo Technology Co.,Ltd
@@ -21,6 +24,7 @@ a0:bb:3e IEEE Registration Authority
 b8:27:eb Raspberry Pi Foundation
 c0:d7:aa Arcadyan Corporation
 c4:95:00 Amazon Technologies Inc.
+c8:c9:a3 Espressif Inc.
 d0:c5:d3 AzureWave Technology Inc.
 d4:5d:df PEGATRON CORPORATION
 d8:fb:d6 Amazon Technologies Inc.

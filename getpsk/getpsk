@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for f in $(sudo grep -l -e ^psk= -r system-connections | sed -e "s_ _?_g"); do
+  sudo awk -F= 'BEGIN { id=""; ssid=""; psk=""; } { if($1=="id"){ id=$2; }; if($1=="ssid"){ ssid=$2; }; if($1=="psk"){ psk=$2; }; } END { printf "%s %s %s\n", id,ssid,psk; }' "${f}"
+done
