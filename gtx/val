@@ -1,0 +1,139 @@
+#!/bin/bash
+
+# config file
+# user=""
+# password=""
+# workingdir="."
+# logfile="${workingdir}/console.log"
+. $(realpath ${0}).conf
+
+if [ -z "${user}" ]; then
+  echo "missing user in config"
+  exit
+fi
+if [ -z "${password}" ]; then
+  echo "missing password in config"
+  exit
+fi
+if [ -z "${workingdir}" ]; then
+  echo "missing workingdir in config"
+  exit
+fi
+if [ -z "${logfile}" ]; then
+  echo "missing logfile in config"
+  exit
+fi
+
+lastdateline() {
+  # grep -e "../../.... ..:..:..: " ${logfile} | tail -n1 | awk '{ split($1,d,"/"); print d[3]"/"d[1]"/"d[2]" "substr($2,1,8); }'
+  awk '/..\/..\/.... ..:..:..: / {ld=$1; lt=$2} END { split(ld,d,"/"); print d[3]"/"d[1]"/"d[2]" "substr(lt,1,8); }' ${logfile}
+}
+
+getfreshlogfile() {
+  lastdateline
+  sshpass -p${password} sftp sftp://${user}@185.216.145.133:8822/185.216.145.133_6370/console.log ${logfile}
+  lastdateline
+}
+
+gettodaysbackupfile() {
+  datecode=$(date +%Y.%m.%d)
+  sshpass -p${password} sftp sftp://${user}@185.216.145.133:8822/185.216.145.133_6370/Backups/Backup-?${datecode}*.7z ${workingdir}/tmp/
+  fromfile=$(ls ${workingdir}/tmp/Backup-?${datecode}*.7z 2>/dev/null)
+  lsexitcode=${?}
+  if [ ${lsexitcode} -eq 0 -a -f ${fromfile} ]; then
+    tofile=$(echo ${fromfile} | tr -d "[]" | sed -e "s_/tmp/Backup_/backups/backup_")
+    echo moving ${fromfile} to ${tofile}
+    mv ${fromfile} ${tofile}
+  fi
+}
+
+gettodaysbackuplogfile() {
+  datecode=$(date +%Y.%m.%d)
+  sshpass -p${password} sftp sftp://${user}@185.216.145.133:8822/185.216.145.133_6370/console-?${datecode}*.log ${workingdir}/tmp/
+  fromfile=$(ls ${workingdir}/tmp/console-?${datecode}*.log 2>/dev/null)
+  lsexitcode=${?}
+  if [ ${lsexitcode} -eq 0 -a -f ${fromfile} ]; then
+    tofile=$(echo ${fromfile} | tr -d "[]" | sed -e "s_/tmp__")
+    echo moving ${fromfile} to ${tofile}
+    mv ${fromfile} ${tofile}
+  fi
+}
+
+showlogins() {
+  grep -e "Got connection SteamID" -e "Got character ZDOID" -e "Closing socket " ${logfile}
+}
+
+showdays() {
+  # grep day: ${logfile} | awk '{ split($1,d,"/"); print d[3]"/"d[1]"/"d[2]" "substr($2,1,8)" "$5; }'
+  awk '/day:/ { split($1,d,"/"); print d[3]"/"d[1]"/"d[2]" "substr($2,1,8)" "$5; }' ${logfile}
+}
+showalldays() {
+  for f in ${workingdir}/console-*.log; do
+    awk '/day:/ { split($1,d,"/"); print d[3]"/"d[1]"/"d[2]" "substr($2,1,8)" "$5; }' ${f}
+    echo
+  done
+  showdays
+}
+awkdaysconns() {
+  awk '
+  BEGIN { na["76561197969791277"] = "Argonaut"; na["76561197979897387"] = "Vlud"; na["76561197989040289"] = "Otarru"; na["76561198031773305"] = "Davo"; na["76561198038848805"] = "Latin"; na["76561198086131096"] = "Trusty"; }
+  /day:/                   { split($1,d,"/"); print d[3]"/"d[1]"/"d[2]" "substr($2,1,8)" "$5; }
+  /Got connection SteamID/ { split($1,d,"/"); i=substr($6,1,17); n=na[i]; print d[3]"/"d[1]"/"d[2]" "substr($2,1,8)" Connected    "i" "n; }
+  /Closing socket /        { split($1,d,"/"); i=substr($5,1,17); n=na[i]; print d[3]"/"d[1]"/"d[2]" "substr($2,1,8)" Disconnected "i" "n; }
+  ' ${1}
+}
+
+showdaysconns() {
+  awkdaysconns ${logfile}
+}
+
+showdaysconnsall() {
+  for f in ${workingdir}/console-*.log; do
+    awkdaysconns ${f}
+    echo
+  done
+  showdaysconns
+}
+
+sftplogin() {
+  cd ${workingdir}
+  sshpass -p${password} sftp sftp://${user}@185.216.145.133:8822/185.216.145.133_6370/
+}
+
+if [ -n "${1}" ]; then
+  case "${1}" in
+  -f | -fresh)
+    getfreshlogfile
+    ;;
+  -l | -log)
+    showlogins
+    ;;
+  -d | -days)
+    showdays
+    ;;
+  -da | -daysall)
+    showalldays
+    ;;
+  -dc | -daysconns)
+    showdaysconns
+    ;;
+  -dca | -daysconnsall)
+    showdaysconnsall
+    ;;
+  -s | -sftp)
+    sftplogin
+    ;;
+  -gtb | -gettodaysbackupfile)
+    gettodaysbackupfile
+    ;;
+  -gtl | -gettodaysbackuplogfile)
+    gettodaysbackuplogfile
+    ;;
+  -debug)
+    echo "${user}"
+    echo "${password}"
+    echo "${workingdir}"
+    echo "${logfile}"
+    ;;
+  esac
+fi
